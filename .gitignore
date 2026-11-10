@@ -218,3 +218,12 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# ==========================================
+# LOCAL DEVELOPMENT DATA (Ignored by Git)
+# ==========================================
+data/*
+!data/.gitkeep
+
+# Streamlit
+.streamlit/secrets.toml
