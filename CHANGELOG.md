@@ -4,6 +4,23 @@ All notable changes to this template. Format based on
 [Keep a Changelog](https://keepachangelog.com); versions follow
 [Semantic Versioning](https://semver.org).
 
+## [0.3.0] - 2026-11-11
+
+### Added
+- `run_setup` question (default: yes) and Copier tasks that run after `copier copy`:
+  `git init`, `uv sync`, `pre-commit install` and the first commit. They never run on
+  `copier update`.
+- `docs/new_project_guide.md`: step-by-step guide (Ubuntu/WSL) from prerequisites to
+  publishing on GitHub, daily workflow and template updates.
+- Template test verifies the setup tasks (first commit, `uv.lock`, pre-commit hook).
+
+### Changed
+- Post-copy message adapted to whether setup ran, with a link to the guide.
+
+### Fixed
+- `check-added-large-files` pre-commit hook no longer blocks `uv.lock` (it exceeds
+  1 MB when several optional components are enabled).
+
 ## [0.2.0] - 2026-11-11
 
 ### Added

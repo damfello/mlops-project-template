@@ -16,7 +16,8 @@ uvx copier copy --trust gh:damfello/mlops-project-template my-project
 ```
 
 Copier asks for the project name, Python version and which optional components
-to enable, then prints the next steps.
+to enable, then (by default) runs `git init`, `uv sync`, `pre-commit install` and the
+first commit. Full walkthrough: [`docs/new_project_guide.md`](docs/new_project_guide.md).
 
 ## Update an existing project
 
@@ -51,7 +52,8 @@ uvx copier update --trust --data use_prefect=true
 ```
 ├── copier.yml                 # questions + template settings
 ├── template/                  # the files rendered into each project (*.jinja are templated)
-├── scripts/test_template.sh   # render + verify a project (base | all)
+├── docs/new_project_guide.md  # how to start a project, step by step
+├── scripts/test_template.sh   # render + verify a project (base | all | update)
 ├── .github/workflows/         # CI for the template itself
 └── CHANGELOG.md
 ```

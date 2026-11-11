@@ -12,6 +12,7 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=1000]
+        exclude: ^uv\.lock$   # lockfiles grow with dependencies; data/models must not
       - id: detect-private-key
 
   - repo: https://github.com/astral-sh/ruff-pre-commit

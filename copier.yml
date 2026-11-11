@@ -90,19 +90,53 @@ use_monitoring:
   help: "[Monitoring] Add Evidently (data drift reports)?"
   default: false
 
+# ---------------------------------------------------------------------------
+# Automation
+# ---------------------------------------------------------------------------
+run_setup:
+  type: bool
+  help: "Run setup now (git init, uv sync, pre-commit install, first commit)?"
+  default: true
+
+# Tasks run after `copier copy` (never on `copier update`) and only if
+# run_setup is true. They require --trust.
+_tasks:
+  - command: "git init -b main"
+    when: "{{ _copier_operation == 'copy' and run_setup }}"
+  - command: "uv sync"
+    when: "{{ _copier_operation == 'copy' and run_setup }}"
+  - command: "uv run pre-commit install"
+    when: "{{ _copier_operation == 'copy' and run_setup }}"
+  - command: "git add -A"
+    when: "{{ _copier_operation == 'copy' and run_setup }}"
+  - command: >-
+      git commit -q -m "chore: scaffold from mlops-project-template {{ _copier_answers._commit | default('', true) }}"
+    when: "{{ _copier_operation == 'copy' and run_setup }}"
+
 _message_after_copy: |
   Project "{{ project_name }}" created in {{ _copier_conf.dst_path }}
+  {%- if run_setup %}
+
+  Setup done: git repo, .venv, pre-commit hooks and first commit.
+
+  Next steps:
+    1. cd {{ _copier_conf.dst_path }} && code .
+    2. uv run poe check               # lint + tests (should be green)
+    3. Create an EMPTY repo on GitHub (no README/.gitignore/license), then:
+         git remote add origin git@github.com:<user>/{{ project_slug }}.git
+         git push -u origin main
+    4. Edit CLAUDE.md (project context) and write docs/adr/0002-...
+  {%- else %}
 
   Next steps:
     1. cd {{ _copier_conf.dst_path }}
     2. git init -b main
-    3. uv sync                        # creates .venv and uv.lock
-    4. uv run pre-commit install      # quality checks before every commit
-    5. uv run poe check               # lint + tests (should be green)
-    6. uv run poe pipeline            # run the example end-to-end pipeline
-    7. git add . && git commit -m "chore: scaffold from mlops-project-template"
+    3. uv sync && uv run pre-commit install
+    4. uv run poe check
+    5. git add -A && git commit -m "chore: scaffold from mlops-project-template"
+  {%- endif %}
 
-  Then edit CLAUDE.md with the project context and write your first ADR.
+  Full guide: https://github.com/damfello/mlops-project-template/blob/main/docs/new_project_guide.md
 
 _message_after_update: |
   Template update applied. Review the changes with `git diff`,

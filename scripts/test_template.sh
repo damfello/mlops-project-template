@@ -27,7 +27,7 @@ fi
 
 commit_all() {
   git add -A
-  git -c user.email=ci@example.com -c user.name=ci commit -qm "$1" --no-verify
+  git -c user.email=ci@example.com -c user.name=ci commit -qm "$1" --no-verify --allow-empty
 }
 
 if [[ "$PROFILE" == "update" ]]; then
@@ -50,7 +50,13 @@ else
   uvx copier copy "${COMMON[@]}" --vcs-ref=HEAD \
     --data project_name="Demo ${PROFILE}" "${OPTIONAL[@]}" \
     "$TEMPLATE_DIR" "$OUT_DIR"
-  cd "$OUT_DIR" && git init -q -b main && git add -A
+  cd "$OUT_DIR"
+  # run_setup (default: true) makes Copier's tasks do git init, uv sync,
+  # pre-commit install and the first commit: verify they did.
+  git log --oneline -1 | grep -q "scaffold from mlops-project-template" \
+    || { echo ">> Copier setup tasks did not create the first commit"; exit 1; }
+  test -f uv.lock || { echo ">> uv.lock missing after setup tasks"; exit 1; }
+  test -f .git/hooks/pre-commit || { echo ">> pre-commit hook not installed"; exit 1; }
 fi
 
 echo ">> Installing"
