@@ -4,6 +4,27 @@ All notable changes to this template. Format based on
 [Keep a Changelog](https://keepachangelog.com); versions follow
 [Semantic Versioning](https://semver.org).
 
+## [0.2.0] - 2026-11-11
+
+### Added
+- Tests generated for optional components: Prefect flow (`tests/integration/test_flow.py`)
+  and Evidently drift report (`tests/unit/test_drift.py`).
+- CLI tests for `pipelines/run.py`.
+- Coverage quality gate: tests fail below 85 % coverage.
+- Dependabot in generated projects (uv, GitHub Actions, Docker base images; monthly).
+- Template CI: matrix Python 3.12 / 3.13 × base / all components, pre-commit run on the
+  generated project, Docker smoke test checks that the model is loaded, and a job that
+  renders the previous tag and runs `copier update` to verify upgrades.
+- `scripts/test_template.sh update` profile.
+
+### Changed
+- `httpx` → `httpx2` for FastAPI's TestClient (removes deprecation warning).
+- MLflow model logged with an explicit signature (float features in, class
+  probabilities out) and `predict_proba` as pyfunc method (removes integer-schema warning).
+
+### Fixed
+- `scripts/test_template.sh` is executable in git.
+
 ## [0.1.0] - 2026-11-11
 
 ### Added

@@ -1,4 +1,4 @@
-# CI for the TEMPLATE itself: render a project with each profile and verify it.
+# CI for the TEMPLATE itself: render projects and verify they work.
 name: Template CI
 
 on:
@@ -7,18 +7,62 @@ on:
     tags: ["v*"]
   pull_request:
 
+concurrency:
+  group: template-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   render-and-test:
-    name: Render (${{ matrix.profile }})
+    name: ${{ matrix.profile }} · py${{ matrix.python }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         profile: [base, all]
+        python: ["3.12", "3.13"]
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0   # Copier needs git history/tags
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Configure git
+        run: |
+          git config --global user.email "ci@example.com"
+          git config --global user.name "ci"
+          git config --global init.defaultBranch main
+
+      - name: Render and test the generated project
+        env:
+          OUT_DIR: ${{ runner.temp }}
+          PYTHON: ${{ matrix.python }}
+        run: bash scripts/test_template.sh ${{ matrix.profile }}
+
+      - name: Build and smoke-test the generated Docker image
+        run: |
+          cd "${{ runner.temp }}"/demo-${{ matrix.profile }}-py*
+          docker build -t demo:ci .
+          docker run -d --name demo -p 8000:8000 \
+            -v "$PWD/models:/app/models:ro" demo:ci
+          for i in $(seq 1 30); do
+            if curl -fsS localhost:8000/health | grep -q '"model_loaded":true'; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs demo
+          exit 1
+
+  update:
+    name: copier update from previous tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - uses: astral-sh/setup-uv@v10.3.3
         with:
@@ -30,19 +74,7 @@ jobs:
           git config --global user.name "ci"
           git config --global init.defaultBranch main
 
-      - name: Render and test the generated project
+      - name: Update an old project to this version
         env:
           OUT_DIR: ${{ runner.temp }}
-        run: bash scripts/test_template.sh ${{ matrix.profile }}
-
-      - name: Build the generated Docker image
-        run: |
-          cd "${{ runner.temp }}/demo-${{ matrix.profile }}"
-          docker build -t demo:ci .
-          docker run -d --name demo -p 8000:8000 demo:ci
-          for i in $(seq 1 20); do
-            curl -fsS localhost:8000/health && exit 0
-            sleep 1
-          done
-          docker logs demo
-          exit 1
+        run: bash scripts/test_template.sh update

@@ -1,0 +1,32 @@
+"""Prefect flow test (generated because Prefect is enabled)."""
+
+from pathlib import Path
+
+import pytest
+import yaml
+from prefect.testing.utilities import prefect_test_harness
+
+from {{ package_name }}.config import get_settings
+from {{ package_name }}.pipelines.flow import training_flow
+
+pytestmark = pytest.mark.integration
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_training_flow_runs(tmp_path, monkeypatch):
+    config = yaml.safe_load((PROJECT_ROOT / "configs/config.yaml").read_text())
+    config["data"]["n_samples"] = 500
+    (tmp_path / "configs").mkdir()
+    (tmp_path / "configs/config.yaml").write_text(yaml.safe_dump(config))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("APP_MLFLOW_TRACKING_URI", f"sqlite:///{tmp_path}/mlflow.db")
+    get_settings.cache_clear()
+
+    try:
+        with prefect_test_harness():
+            training_flow()
+    finally:
+        get_settings.cache_clear()
+
+    assert Path("models/model.joblib").exists()

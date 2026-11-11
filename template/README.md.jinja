@@ -101,6 +101,12 @@ uv run poe docker-run        # then open http://localhost:8000/health
 {%- endif %}
 {%- endif %}
 
+## Dependency updates
+
+Dependabot (`.github/dependabot.yml`) opens monthly PRs for Python packages, GitHub
+Actions and Docker base images; CI validates them before you merge. Update pre-commit
+hooks with `uv run pre-commit autoupdate`.
+
 ## Updating from the template
 
 ```bash

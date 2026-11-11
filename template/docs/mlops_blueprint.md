@@ -13,6 +13,7 @@ Deviations are allowed when justified and recorded in an ADR (`docs/adr/`).
 
 ### 2. Quality Control & Validation
 - **Software:** `pytest` + `ruff` (lint and format). Pre-commit hooks locally, same checks in CI.
+  Coverage gate: 85 % minimum.
 - **Data:** schema and contract validation (`pandera`) at every ingestion boundary.
 - **Models:** behavioural testing – MFT, INV, DIR (`tests/model/`) plus a quality gate on
   held-out metrics (`evaluation/`).
@@ -31,6 +32,7 @@ Deviations are allowed when justified and recorded in an ADR (`docs/adr/`).
 
 ### 5. CI/CD, Orchestration & Monitoring
 - GitHub Actions: lint + tests + Docker build on every push / PR.
+- Dependabot: monthly update PRs for Python deps, Actions and Docker base images.
 - Orchestration: task runner (`poe`) first; Prefect when scheduling/retries are needed.
 - Monitoring: Evidently drift reports once a model receives new data.
 

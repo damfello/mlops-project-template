@@ -43,7 +43,7 @@ uvx copier update --trust --data use_prefect=true
 | MLflow tracking (local SQLite)                  | **Evidently** – data drift reports           |
 | FastAPI serving + multi-stage Docker image      |                                              |
 | ruff, pytest, pre-commit, Poe tasks             |                                              |
-| GitHub Actions CI (lint, tests, Docker build)   |                                              |
+| GitHub Actions CI (lint, tests, Docker build) + Dependabot |                                              |
 | ADRs, CLAUDE.md, MLOps blueprint                |                                              |
 
 ## Repository layout
@@ -59,8 +59,10 @@ uvx copier update --trust --data use_prefect=true
 ## Developing the template
 
 ```bash
-scripts/test_template.sh base     # render with defaults and run lint, tests, pipeline
+scripts/test_template.sh base     # render with defaults: pre-commit, lint, tests, pipeline
 scripts/test_template.sh all      # same with every optional component
+scripts/test_template.sh update   # render the previous tag and `copier update` to HEAD
+PYTHON=3.12 scripts/test_template.sh base   # another Python version
 ```
 
 Release process (semantic versioning — projects update to tags):

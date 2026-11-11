@@ -1,0 +1,11 @@
+"""Drift report test (generated because monitoring is enabled)."""
+
+from {{ package_name }}.monitoring.drift import drift_report
+
+
+def test_drift_report_is_written(raw_df, tmp_path):
+    reference = raw_df.drop(columns=["target"]).iloc[:500]
+    current = reference.assign(x1=reference["x1"] + 3.0)  # injected drift
+    output = drift_report(reference, current, tmp_path / "drift.html")
+    assert output.exists()
+    assert output.stat().st_size > 0

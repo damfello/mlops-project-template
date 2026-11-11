@@ -55,6 +55,7 @@ def run_training(config: ProjectConfig, model_path: Path, tracking_uri: str) -> 
     """Train on the train split, save the model and log the run to MLflow."""
     import mlflow  # imported here: serving never needs MLflow installed
     import mlflow.sklearn
+    from mlflow.models import infer_signature
 
     train = pd.read_csv(config.data.train_path)
     X, y = train.drop(columns=[TARGET_COLUMN]), train[TARGET_COLUMN]
@@ -69,7 +70,16 @@ def run_training(config: ProjectConfig, model_path: Path, tracking_uri: str) -> 
             {"model_name": config.model.name, "seed": config.random_seed}
             | config.model.params
         )
-        mlflow.sklearn.log_model(model, name="model", input_example=X.head(5))
+        # Explicit signature = the model contract: float features in,
+        # class probabilities out (what the API serves).
+        signature = infer_signature(X.astype("float64"), model.predict_proba(X))
+        mlflow.sklearn.log_model(
+            model,
+            name="model",
+            signature=signature,
+            input_example=X.head(5).astype("float64"),
+            pyfunc_predict_fn="predict_proba",
+        )
 
         model_path.parent.mkdir(parents=True, exist_ok=True)
         joblib.dump(model, model_path)
