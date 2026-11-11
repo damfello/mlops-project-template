@@ -1,0 +1,110 @@
+# =============================================================================
+# Copier configuration for the MLOps project template
+# Docs: https://copier.readthedocs.io
+#
+# Create a project:   uvx copier copy --trust gh:damfello/mlops-project-template my-project
+# Update a project:   uvx copier update --trust      (run inside the project)
+# =============================================================================
+
+_min_copier_version: "9.4.0"
+_subdirectory: template
+_answers_file: .copier-answers.yml
+
+# Files that belong to the project once created: `copier update` never
+# overwrites them (they are edited by hand or record a point in time).
+_skip_if_exists:
+  - LICENSE
+  - CLAUDE.md
+  - docs/adr/0001-project-scaffolding.md
+
+# ---------------------------------------------------------------------------
+# Project identity
+# ---------------------------------------------------------------------------
+project_name:
+  type: str
+  help: Human-readable project name (e.g. "MTA AB Test Engine")
+  validator: "{% if not project_name.strip() %}Project name cannot be empty{% endif %}"
+
+project_slug:
+  type: str
+  help: Repository / distribution name (kebab-case)
+  default: "{{ project_name | lower | trim | replace(' ', '-') | replace('_', '-') }}"
+  validator: >-
+    {% if not (project_slug | regex_search('^[a-z][a-z0-9-]*$')) %}
+    Use lowercase letters, digits and dashes, starting with a letter
+    {% endif %}
+
+package_name:
+  type: str
+  help: Python package name (snake_case, used in imports)
+  default: "{{ project_slug | replace('-', '_') }}"
+  validator: >-
+    {% if not (package_name | regex_search('^[a-z][a-z0-9_]*$')) %}
+    Use lowercase letters, digits and underscores, starting with a letter
+    {% endif %}
+
+description:
+  type: str
+  help: One-line project description
+  default: "An MLOps project built with the mlops-project-template framework"
+
+author_name:
+  type: str
+  help: Author name (used in pyproject.toml and LICENSE)
+  default: "Duvan Fruto"
+
+python_version:
+  type: str
+  help: Python version
+  choices:
+    - "3.13"
+    - "3.12"
+  default: "3.13"
+
+# ---------------------------------------------------------------------------
+# Optional components (activate them when the project actually needs them;
+# document each activation with an ADR in docs/adr/)
+# ---------------------------------------------------------------------------
+use_dvc:
+  type: bool
+  help: "[Data versioning] Add DVC (data & pipeline versioning with dvc.yaml)?"
+  default: false
+
+use_dbt:
+  type: bool
+  help: "[Transformations] Add dbt with DuckDB (SQL transformations + data tests)?"
+  default: false
+
+use_prefect:
+  type: bool
+  help: "[Orchestration] Add Prefect (scheduled flows, retries, run history)?"
+  default: false
+
+use_compose:
+  type: bool
+  help: "[Services] Add docker compose (API + MLflow tracking server)?"
+  default: false
+
+use_monitoring:
+  type: bool
+  help: "[Monitoring] Add Evidently (data drift reports)?"
+  default: false
+
+_message_after_copy: |
+  Project "{{ project_name }}" created in {{ _copier_conf.dst_path }}
+
+  Next steps:
+    1. cd {{ _copier_conf.dst_path }}
+    2. git init -b main
+    3. uv sync                        # creates .venv and uv.lock
+    4. uv run pre-commit install      # quality checks before every commit
+    5. uv run poe check               # lint + tests (should be green)
+    6. uv run poe pipeline            # run the example end-to-end pipeline
+    7. git add . && git commit -m "chore: scaffold from mlops-project-template"
+
+  Then edit CLAUDE.md with the project context and write your first ADR.
+
+_message_after_update: |
+  Template update applied. Review the changes with `git diff`,
+  resolve any conflicts (*.rej files or conflict markers), run
+  `uv sync && uv run poe check`, and commit.

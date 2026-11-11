@@ -1,0 +1,48 @@
+# CI for the TEMPLATE itself: render a project with each profile and verify it.
+name: Template CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  render-and-test:
+    name: Render (${{ matrix.profile }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [base, all]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # Copier needs git history/tags
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: "3.13"
+
+      - name: Configure git
+        run: |
+          git config --global user.email "ci@example.com"
+          git config --global user.name "ci"
+          git config --global init.defaultBranch main
+
+      - name: Render and test the generated project
+        env:
+          OUT_DIR: ${{ runner.temp }}
+        run: bash scripts/test_template.sh ${{ matrix.profile }}
+
+      - name: Build the generated Docker image
+        run: |
+          cd "${{ runner.temp }}/demo-${{ matrix.profile }}"
+          docker build -t demo:ci .
+          docker run -d --name demo -p 8000:8000 demo:ci
+          for i in $(seq 1 20); do
+            curl -fsS localhost:8000/health && exit 0
+            sleep 1
+          done
+          docker logs demo
+          exit 1

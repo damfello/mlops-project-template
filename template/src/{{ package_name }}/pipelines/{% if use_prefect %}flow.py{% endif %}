@@ -1,0 +1,35 @@
+"""Prefect flow: the same stages as ``run.py``, now orchestrated.
+
+What Prefect adds on top of ``run.py``: retries, run history and logs in a UI,
+and scheduling. The stage logic is NOT duplicated: tasks call the same
+functions.
+
+    uv run poe flow                    # run once (starts a temporary local server)
+    uv run prefect server start        # optional: persistent UI at http://127.0.0.1:4200
+
+To schedule it (e.g. monthly retraining) replace the last line with:
+    training_flow.serve(name="monthly-retrain", cron="0 6 1 * *")
+"""
+
+from __future__ import annotations
+
+from prefect import flow, task
+
+from ..config import get_settings, load_config
+from .run import STAGES
+
+
+@task(retries=2, retry_delay_seconds=10)
+def run_stage(name: str) -> None:
+    settings = get_settings()
+    STAGES[name](load_config(settings.config_path), settings)
+
+
+@flow(name="training-pipeline", log_prints=True)
+def training_flow() -> None:
+    for name in STAGES:
+        run_stage(name)
+
+
+if __name__ == "__main__":
+    training_flow()

@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: stg_dataset
+    description: Raw dataset with explicit types.
+    columns:
+      - name: target
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: x1
+        data_tests:
+          - not_null

@@ -1,0 +1,60 @@
+# DVC pipeline: same stages as `pipelines/run.py`, plus dependency tracking.
+# `uv run dvc repro` re-runs ONLY the stages whose deps/params changed, and
+# `dvc.lock` records the exact data/model hashes of each run (commit it).
+stages:
+  ingest:
+    cmd: uv run python -m {{ package_name }}.pipelines.run --stage ingest
+    deps:
+      - src/{{ package_name }}/data/ingest.py
+    params:
+      - configs/config.yaml:
+          - random_seed
+          - data.n_samples
+    outs:
+      - data/raw/dataset.csv
+
+  validate:
+    cmd: uv run python -m {{ package_name }}.pipelines.run --stage validate
+    deps:
+      - src/{{ package_name }}/data/validation.py
+      - data/raw/dataset.csv
+    outs:
+      - data/interim/validated.csv
+
+  features:
+    cmd: uv run python -m {{ package_name }}.pipelines.run --stage features
+    deps:
+      - src/{{ package_name }}/features/build.py
+      - data/interim/validated.csv
+    params:
+      - configs/config.yaml:
+          - data.test_size
+    outs:
+      - data/processed/train.csv
+      - data/processed/test.csv
+
+  train:
+    cmd: uv run python -m {{ package_name }}.pipelines.run --stage train
+    deps:
+      - src/{{ package_name }}/training/train.py
+      - data/processed/train.csv
+    params:
+      - configs/config.yaml:
+          - model
+    outs:
+      - models/model.joblib
+      - models/model.meta.json:
+          cache: false
+
+  evaluate:
+    cmd: uv run python -m {{ package_name }}.pipelines.run --stage evaluate
+    deps:
+      - src/{{ package_name }}/evaluation/evaluate.py
+      - models/model.joblib
+      - data/processed/test.csv
+    params:
+      - configs/config.yaml:
+          - evaluation.min_roc_auc
+    metrics:
+      - reports/metrics.json:
+          cache: false

@@ -1,0 +1,17 @@
+# dbt project: SQL transformations + data tests on DuckDB.
+# Run from the project root:  uv run poe dbt-build
+name: {{ package_name }}
+version: "1.0.0"
+profile: {{ package_name }}
+
+model-paths: ["models"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  {{ package_name }}:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

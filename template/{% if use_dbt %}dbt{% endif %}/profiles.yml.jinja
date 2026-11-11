@@ -1,0 +1,8 @@
+# Local DuckDB warehouse (a single file, git-ignored). No server needed.
+{{ package_name }}:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: data/warehouse.duckdb
+      threads: 4
