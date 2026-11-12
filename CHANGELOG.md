@@ -4,6 +4,21 @@ All notable changes to this template. Format based on
 [Keep a Changelog](https://keepachangelog.com); versions follow
 [Semantic Versioning](https://semver.org).
 
+## [0.3.1] - 2026-11-12
+
+### Fixed
+- Package docstring (`__init__.py`) is now a short summary line plus the description
+  wrapped at 84 columns: a long description no longer breaks `ruff check` (E501).
+- Setup tasks fail fast with a clear message when git has no `user.name` /
+  `user.email`, instead of failing at the last step (the first commit). Copier then
+  removes the new project, so the fix is to set the identity and copy again.
+
+### Added
+- `docs/new_project_guide.md`: one-command, non-interactive `copier copy` recipe and
+  troubleshooting for a missing git identity and for projects created with setup = No
+  (manual setup now includes the first commit).
+- Template test renders with a multi-line description (docstring regression test).
+
 ## [0.3.0] - 2026-11-11
 
 ### Added

@@ -101,6 +101,18 @@ run_setup:
 # Tasks run after `copier copy` (never on `copier update`) and only if
 # run_setup is true. They require --trust.
 _tasks:
+  # Fail fast, before any setup step, if git has no identity: otherwise the
+  # first commit fails at the end. On a failed task Copier deletes the new
+  # project, so the user just fixes git and runs `copier copy` again.
+  - command: |
+      if ! git config user.name > /dev/null || ! git config user.email > /dev/null; then
+        echo "ERROR: git has no identity (user.name / user.email). Set it with:"
+        echo "  git config --global user.name 'Your Name'"
+        echo "  git config --global user.email 'you@example.com'"
+        echo "Then run the same 'copier copy' command again."
+        exit 1
+      fi
+    when: "{{ _copier_operation == 'copy' and run_setup }}"
   - command: "git init -b main"
     when: "{{ _copier_operation == 'copy' and run_setup }}"
   - command: "uv sync"

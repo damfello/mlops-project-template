@@ -19,6 +19,8 @@ if [[ -e "$OUT_DIR" ]]; then
 fi
 
 COMMON=(--trust --defaults --data python_version="$PYTHON")
+# Longer than one line on purpose: regression test for the package docstring.
+LONG_DESCRIPTION="User-level multi-touch attribution and journey optimization on GA4 data, plus A/B testing of bidding strategies"
 OPTIONAL=()
 if [[ "$PROFILE" == "all" ]]; then
   OPTIONAL=(--data use_dvc=true --data use_dbt=true --data use_prefect=true
@@ -49,6 +51,7 @@ else
   echo ">> Rendering template (${PROFILE}, Python ${PYTHON}) into ${OUT_DIR}"
   uvx copier copy "${COMMON[@]}" --vcs-ref=HEAD \
     --data project_name="Demo ${PROFILE}" "${OPTIONAL[@]}" \
+    --data description="${LONG_DESCRIPTION}" \
     "$TEMPLATE_DIR" "$OUT_DIR"
   cd "$OUT_DIR"
   # run_setup (default: true) makes Copier's tasks do git init, uv sync,

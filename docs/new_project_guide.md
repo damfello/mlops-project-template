@@ -22,7 +22,14 @@ cd ~/projects
 uvx copier copy --trust gh:damfello/mlops-project-template <project-name>
 ```
 
-Copier asks for:
+Or without questions (defaults: no optional components, setup runs). Keep the
+description short and quoted:
+
+```bash
+uvx copier copy --trust --defaults --data project_name="My Project" --data description="One-line description" gh:damfello/mlops-project-template my-project
+```
+
+Interactively, Copier asks for:
 
 - **Name, slug, package** – the package name is used in imports (`from <package> import ...`).
 - **Python version** – 3.13 unless a library requires 3.12.
@@ -100,4 +107,5 @@ git commit -am "chore: update from template vX.Y.Z"
 | pre-commit modified files and the commit stopped | `git add -A` and commit again |
 | `docker: command not found` in Ubuntu | Enable WSL integration in Docker Desktop |
 | Everything shows as modified on Windows | Line endings: `.gitattributes` handles it; work in WSL |
-| Setup tasks failed during `copier copy` | Run them manually: `git init -b main && uv sync && uv run pre-commit install` |
+| `ERROR: git has no identity` during `copier copy` | Copier removed the half-created project. Set `user.name` and `user.email` (§0) and run `copier copy` again |
+| Project created with setup = No (no `.git`, no `.venv`) | Run the setup manually: `git init -b main && uv sync && uv run pre-commit install && git add -A && git commit -m "chore: scaffold from mlops-project-template"` |
